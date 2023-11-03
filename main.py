@@ -12,20 +12,20 @@ import mpld3 as mpl
 #Import models from scikit learn module:
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-from sklearn.cross_validation import KFold   #For K-fold cross validation
+from sklearn.model_selection import KFold   #For K-fold cross validation
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 from sklearn import metrics
 
 
 # Loading data
-df = pd.read_csv("../input/data.csv",header = 0)
+df = pd.read_csv("breastcancerdata.csv",header = 0)
 df.head()
 
 
 # Clean and prepare data
 df.drop('id',axis=1,inplace=True)
-df.drop('Unnamed: 32',axis=1,inplace=True)
+df.drop('fractal_dimension_worst',axis=1,inplace=True)
 # size of the dataframe
 len(df)
 
@@ -61,7 +61,7 @@ axes = axes.ravel()
 for idx,ax in enumerate(axes):
     ax.figure
     binwidth= (max(df[features_mean[idx]]) - min(df[features_mean[idx]]))/50
-    ax.hist([dfM[features_mean[idx]],dfB[features_mean[idx]]], bins=np.arange(min(df[features_mean[idx]]), max(df[features_mean[idx]]) + binwidth, binwidth) , alpha=0.5,stacked=True, normed = True, label=['M','B'],color=['r','g'])
+    ax.hist([dfM[features_mean[idx]],dfB[features_mean[idx]]], bins=np.arange(min(df[features_mean[idx]]), max(df[features_mean[idx]]) + binwidth, binwidth) , alpha=0.5,stacked=True, density = True, label=['M','B'],color=['r','g'])
     ax.legend(loc='upper right')
     ax.set_title(features_mean[idx])
 plt.tight_layout()
@@ -86,9 +86,9 @@ def classification_model(model, data, predictors, outcome):
   print("Accuracy : %s" % "{0:.3%}".format(accuracy))
 
   #Perform k-fold cross-validation with 5 folds
-  kf = KFold(data.shape[0], n_folds=5)
+  kf = KFold(n_splits=5)
   error = []
-  for train, test in kf:
+  for train, test in kf.split(data):
     # Filter training data
     train_predictors = (data[predictors].iloc[train,:])
     
@@ -154,5 +154,4 @@ classification_model(model, traindf,predictor_var,outcome_var)
 predictor_var = features_mean
 model = RandomForestClassifier(n_estimators=100,min_samples_split=25, max_depth=7, max_features=2)
 classification_model(model, testdf,predictor_var,outcome_var)
-
 
